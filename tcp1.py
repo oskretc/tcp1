@@ -1,23 +1,49 @@
 #tcp1.py
-from socket import *
-
+#from socket import *
+from TCPClass import C3POServer
 HOST = ''
 PORT = 29876
 ADDR = (HOST,PORT)
 BUFSIZE = 4096
 
-try:
-    print "trying to establish the server"
-    serv=socket (AF_INET,SOCK_STREAM)
-    serv.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-    serv.bind((ADDR))
-    
-    print "listening"
-    serv.listen(1)
 
-    conn, addr = serv.accept() #accept the connection
-    print '...connected!', addr
-    conn.send('TEST')
+
+
+
+
+    
+print "trying to establish the server"    
+s=C3POServer()
+
+
+slow=1
+    
+try:
+    while 1:
+        
+        if slow:
+            print "listening slow"
+            s.StartListen()
+            s.DoConnect()
+            print '...connected!', s.Address
+
+            DataIn=s.RecvData()   #Receive Commands
+            s.SendData(DataIn + "OK")     #Send ACK on the Command
+
+            s.CloseConnection()
+            
+        else:
+            print "listening fast"
+            s.StartListen()
+            s.DoConnect() #accept the connection
+            DataIn=""
+            while DataIn != "CloseConnection":
+                try:
+                    DataIn=s.RecvData()   #Receive Commands
+                    s.SendData(DataIn)     #Send ACK on the Command
+                except ValueError:
+                    print "error"
+            s.CloseConnection()
     
 except KeyboardInterrupt:
     print "closing with keyboard"
@@ -26,7 +52,6 @@ except KeyboardInterrupt:
     
 finally:
     print "closing"
-    serv.shutdown(SHUT_RDWR)
-    serv.close()
+    s.CloseServer
         
     
